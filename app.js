@@ -10,6 +10,7 @@ const contactRoutes = require('./src/routes/contactRoutes');
 const featureRoutes = require('./src/routes/featureRoutes');
 const slideRoutes = require('./src/routes/slideRoutes');
 const authRoutes = require('./src/routes/authRoutes');
+const devRoutes = require('./src/routes/devRoutes');
 
 // Initialize app
 const app = express();
@@ -28,6 +29,7 @@ app.use('/api/resultados', resultadoRoutes);
 app.use('/api/contatos', contactRoutes);
 app.use('/api/features', featureRoutes);
 app.use('/api/slides', slideRoutes);
+app.use('/api/dev', devRoutes);
 
 
 // Health check
@@ -35,11 +37,20 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'API is running' });
 });
 
+
+  
+
 // Error handling
-app.use((req, res, next) => {
-  const error = new Error('Not found');
-  error.status = 404;
-  next(error);
+// Adicione error handling mais detalhado
+app.use((error, req, res, next) => {
+  console.error("Erro:", error);
+  
+  res.status(error.status || 500).json({
+    success: false,
+    error: error.message || 'Erro no servidor',
+    // Adicione stack apenas em desenvolvimento
+    stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+  });
 });
 
 app.use((error, req, res, next) => {

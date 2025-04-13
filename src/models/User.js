@@ -2,6 +2,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
+
 const UserSchema = new mongoose.Schema({
   email: {
     type: String,
@@ -31,6 +32,16 @@ UserSchema.pre('save', async function(next) {
 // Método para comparar senhas
 UserSchema.methods.matchPassword = async function(password) {
   return await bcrypt.compare(password, this.password);
+};
+
+// Adicione um índice para melhor performance
+UserSchema.index({ email: 1 }, { unique: true });
+
+// Adicione um método toJSON para segurança
+UserSchema.methods.toJSON = function() {
+  const user = this.toObject();
+  delete user.password;
+  return user;
 };
 
 module.exports = mongoose.model('User', UserSchema);

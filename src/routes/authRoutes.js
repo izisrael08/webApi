@@ -12,21 +12,31 @@ const router = express.Router();
 router.post('/login', async (req, res, next) => {
   const { email, password } = req.body;
 
-  if (!email || !email.includes('@')) {
-    return next(new ErrorResponse('Email inválido', 400));
+  // Validação básica
+  if (!email || !password) {
+    return res.status(400).json({
+      success: false,
+      error: 'Email e senha são obrigatórios'
+    });
   }
 
   try {
     const user = await User.findOne({ email }).select('+password');
-
+    
     if (!user) {
-      return next(new ErrorResponse('Credenciais inválidas', 401));
+      return res.status(401).json({
+        success: false,
+        error: 'Credenciais inválidas'
+      });
     }
 
     const isMatch = await user.matchPassword(password);
-
+    
     if (!isMatch) {
-      return next(new ErrorResponse('Credenciais inválidas', 401));
+      return res.status(401).json({
+        success: false,
+        error: 'Credenciais inválidas'
+      });
     }
 
     const token = jwt.sign(
@@ -35,12 +45,23 @@ router.post('/login', async (req, res, next) => {
       { expiresIn: '1h' }
     );
 
+    // Resposta padronizada
     res.status(200).json({
       success: true,
-      token
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role
+      }
     });
+
   } catch (err) {
-    next(err);
+    console.error("Erro no login:", err);
+    res.status(500).json({
+      success: false,
+      error: 'Erro no servidor'
+    });
   }
 });
 
