@@ -19,8 +19,23 @@ const app = express();
 connectDB();
 
 // Middleware
+const allowedOrigins = [
+  'http://localhost:5173',          // Ambiente de desenvolvimento
+  'https://webapi-myu4.onrender.com', // Seu próprio backend (se necessário)
+  'https://bolao-da-sorte-weld.vercel.app' // Seu frontend no Vercel
+];
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://webapi-myu4.onrender.com'],
+  origin: function (origin, callback) {
+    // Permite requests sem origin (como mobile apps ou curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -29,7 +44,7 @@ app.use(cors({
 app.use(express.json());
 app.use(morgan('dev'));
 
-// Health check (coloque antes das outras rotas)
+// Health check
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'API is running' });
 });
@@ -43,7 +58,7 @@ app.use('/api/features', featureRoutes);
 app.use('/api/slides', slideRoutes);
 app.use('/api/dev', devRoutes);
 
-// Error handling (APENAS UM middleware de erro)
+// Error handling
 app.use((error, req, res, next) => {
   console.error("Erro:", error);
   
