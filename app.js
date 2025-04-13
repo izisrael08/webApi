@@ -17,6 +17,7 @@ const app = express();
 
 // Connect to Database
 connectDB();
+
 // Middleware
 app.use(cors({
   origin: ['http://localhost:5173', 'https://webapi-myu4.onrender.com'],
@@ -28,6 +29,11 @@ app.use(cors({
 app.use(express.json());
 app.use(morgan('dev'));
 
+// Health check (coloque antes das outras rotas)
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'API is running' });
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/palpites', palpiteRoutes);
@@ -37,34 +43,14 @@ app.use('/api/features', featureRoutes);
 app.use('/api/slides', slideRoutes);
 app.use('/api/dev', devRoutes);
 
-
-// Health check
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'API is running' });
-});
-
-
-  
-
-// Error handling
-// Adicione error handling mais detalhado
+// Error handling (APENAS UM middleware de erro)
 app.use((error, req, res, next) => {
   console.error("Erro:", error);
   
   res.status(error.status || 500).json({
     success: false,
     error: error.message || 'Erro no servidor',
-    // Adicione stack apenas em desenvolvimento
     stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-  });
-});
-
-app.use((error, req, res, next) => {
-  res.status(error.status || 500);
-  res.json({
-    error: {
-      message: error.message
-    }
   });
 });
 

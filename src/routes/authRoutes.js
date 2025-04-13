@@ -1,18 +1,16 @@
-// src/routes/authRoutes.js
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const ErrorResponse = require('../utils/errorResponse');
-const User = require('../models/User'); // Caminho corrigido
+const User = require('../models/User');
 
 const router = express.Router();
 
-// @desc    Login do usuário
 // @route   POST /api/auth/login
-// @access  Public
-router.post('/login', async (req, res, next) => {
+router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
-  // Validação básica
+  console.log('Tentativa de login com:', email); // Log para debug
+
   if (!email || !password) {
     return res.status(400).json({
       success: false,
@@ -24,6 +22,7 @@ router.post('/login', async (req, res, next) => {
     const user = await User.findOne({ email }).select('+password');
     
     if (!user) {
+      console.log('Usuário não encontrado:', email);
       return res.status(401).json({
         success: false,
         error: 'Credenciais inválidas'
@@ -33,6 +32,7 @@ router.post('/login', async (req, res, next) => {
     const isMatch = await user.matchPassword(password);
     
     if (!isMatch) {
+      console.log('Senha incorreta para:', email);
       return res.status(401).json({
         success: false,
         error: 'Credenciais inválidas'
@@ -45,7 +45,7 @@ router.post('/login', async (req, res, next) => {
       { expiresIn: '1h' }
     );
 
-    // Resposta padronizada
+    console.log('Login bem-sucedido para:', email);
     res.status(200).json({
       success: true,
       token,
