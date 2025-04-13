@@ -18,7 +18,13 @@ const app = express();
 // Connect to Database
 connectDB();
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'https://webapi-myu4.onrender.com'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(morgan('dev'));
 
